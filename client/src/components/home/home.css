@@ -1,0 +1,12 @@
+.butn{
+    background-color:#343658;
+}
+
+.butn:hover{
+    background-color: #000;
+    transition: all 0.7s;
+}
+
+.form-control{
+    color:burlywood;
+}
