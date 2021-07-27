@@ -9,12 +9,9 @@ const rooms = {};
 const users = {};
 
 const app = express();
-app.use(cors);
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname+'/client/build/index.html'));
-});
-const server = app.listen(process.env.PORT||5000);
+app.use(express.static(path.join(__dirname, 'client/build')));
 
+const server = app.use(cors).listen(process.env.PORT||5000,()=>console.log("listening"));
 /* const callback=()=>{
     if (rooms[room]) {
         let freeUsersNumbers = rooms[room].freeUsers.length
