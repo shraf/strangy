@@ -1,7 +1,7 @@
 import {io} from "socket.io-client";
 
 
-const ENDPOINT = 'ws://';
+const ENDPOINT = '/';
 
 export default class SocketService {
      
