@@ -1,0 +1,18 @@
+@keyframes icon {
+    from{
+        transform: translateX(0px);
+        opacity: 0.2;
+    }
+    50%{
+        transform: translateX(50%);
+        opacity: 1;
+    }
+    to{
+        transform: translateX(-50%);
+    opacity: 0.2;
+    }
+}
+
+.animated-icon{
+    animation: icon 4s  1s infinite alternate none;
+}
