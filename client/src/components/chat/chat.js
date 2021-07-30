@@ -8,60 +8,63 @@ import useForm from '../../hooks/useForm';
 import ChatLayout from './chatLayout';
 const Chat = () => {
 
-  const [state,dispatch]=useContext(Store);
-  const {addMessage,clearMessages}=useDispatch(dispatch);
+  const [state, dispatch] = useContext(Store);
+  const { addMessage, clearMessages } = useDispatch(dispatch);
   const [socket, setSocket] = useState(null);
   const [isPaired, setIsPaired] = useState(false);
   const { name, room } = useParams();
   const [strangeName, setStrangeName] = useState("");
-  const [display,setDisplay]=useState("invisible");
-  var timer=setTimeout(()=>null,100);
+  const [display, setDisplay] = useState("invisible");
+  var timer = setTimeout(() => null, 100);
 
   useEffect(() => {
     if (socket) {
-      socket.listen("connect", () => {
-        console.log("connected");
-        console.log(socket.id);
+      socket.listen("connect", () => socket.send("join", { name, room })
+      )
 
-        socket.send("join", { name, room });
-
-      })
-
-      socket.listen("paired_dissconnected", () => {
-        console.log("dissconnected");
-        initialize();
-      })
+      socket.listen("paired_dissconnected", () => initialize())
       socket.listen("handshake", ({ participant }) => initializeWithPaiered(participant));
       socket.listen("message", (message) => recieveMessage(message));
-      socket.listen("typing",()=>recieveTyping());
+      socket.listen("typing", () => recieveTyping());
 
     }
     else
       setSocket(new SocketService());
-    return () => socket ? socket.disconnect() : "";
+    return () => {
+      if (socket) {
+        socket.disconnect();
+        clearMessages();
+      }
+    }
   }, [socket])
 
- 
 
-  const doMessage=useCallback((message)=>{
-    socket.send("message",message);
+
+  const doMessage = useCallback((message) => {
+    socket.send("message", message);
     addMessage({
-      message:message,
-      type:"sent"
+      message: message,
+      type: "sent"
     });
-  },[socket]);
+  }, [socket]);
 
-  const doType=useCallback((e)=>{
+  const recieveMessage = (message) => {
+    addMessage({
+      message: message,
+      type: "recieved"
+    })
+  }
+  const doType = useCallback((e) => {
     socket.send("typing");
-    
-},[socket]);
 
-const recieveTyping=()=>{
-  setDisplay("visible");
+  }, [socket]);
+
+  const recieveTyping = () => {
+    setDisplay("visible");
     clearTimeout(timer);
-  timer=(setTimeout(()=>setDisplay("invisible"),800));
-  
-}
+    timer = (setTimeout(() => setDisplay("invisible"), 800));
+
+  }
   const initializeWithPaiered = (name) => {
 
 
@@ -74,15 +77,10 @@ const recieveTyping=()=>{
     setStrangeName("");
   }
 
-  const recieveMessage=(message)=>{
-    addMessage({
-      message:message,
-      type:"recieved"
-    })
-  }
+
   return (
     <>
-      {isPaired ? <ChatLayout display={display} doType={doType} messages={state.messages} name={strangeName} room={room} doMessage={doMessage}/> : <div className="text-white"> Waiting stranger to join room</div>}
+      {isPaired ? <ChatLayout display={display} doType={doType} messages={state.messages} name={strangeName} room={room} doMessage={doMessage} /> : <div className="text-white"> Waiting stranger to join room</div>}
 
     </>
   )

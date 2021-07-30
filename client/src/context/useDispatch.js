@@ -6,7 +6,7 @@ const useDispatch = (dispatch) => {
     }
 
     const clear = () => {
-        dispatch(clearMessages);
+        dispatch(clearMessages());
     }
     return ({
         addMessage: add,

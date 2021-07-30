@@ -12,23 +12,7 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 const server = app.use(cors).listen(process.env.PORT||5000,()=>console.log("listening"));
-/* const callback=()=>{
-    if (rooms[room]) {
-        let freeUsersNumbers = rooms[room].freeUsers.length
-        if (freeUsersNumbers > 0) {
-            let randomUserINdex = Math.floor(Math.random() * freeUsersNumbers);
-            let paired_user = rooms[room].freeUsers[randomUserINdex];
-            socket.broadcast.to(paired_user).emit('handshake', 'for your eyes only'); 
-       
-        }
-        else {
-            rooms[room].freeUsers = [socket.id];
-        }
-    }
-    else {
-        rooms[room] = { freeUsers: [socket.id] };
-    }
-} */
+
 const pairUser = (id, room) => {
     let freeUsersNumbers = rooms[room].free.length;
     let randomUserIndex = Math.floor(Math.random());
@@ -54,21 +38,18 @@ io.on("connection", socket => {
         const {room} = users[socket.id];
         const paired_user = rooms[room].paired[socket.id];
         socket.broadcast.to(paired_user).emit("message", message);
-        console.log("messaging");
-        console.log(`from ${socket.id} to ${paired_user}`)
+ 
     })
     socket.on('disconnect', () => {
 
         const room = users[socket.id].room;
         const pairedUser=rooms[room].paired[socket.id];
-        console.log(pairedUser);
-        console.log("deleting room");
+
         delete users[socket.id]
         if (room&&rooms[room]){
             delete rooms[room].paired[socket.id];
             delete rooms[room].paired[pairedUser];
             rooms[room].free.push(pairedUser);
-            console.log("deleted room");
         }
         socket.broadcast.to(pairedUser).emit("paired_dissconnected");
     });
@@ -86,15 +67,19 @@ io.of("/").adapter.on("create-room", (room) => {
 
 io.of("/").adapter.on("join-room", (room, id) => {
     if (room != id) {
-        console.log("room != id");
+
         users[id] = {...users[id],room:room};
         if (rooms[room].free.length > 0)
             pairUser(id, room)
                 .then(paired_user =>{
+                    try{
                      io.sockets.sockets.get(id).broadcast.to(paired_user).emit("handshake",{participant:users[id].name});
                      io.sockets.sockets.get(paired_user).broadcast.to(id).emit("handshake",{participant:users[paired_user].name});
-                    
-                    })
+                    }
+                    catch(err){
+                        c
+                    }
+                    }).catch(err=>console.log(err));
         else {
             rooms[room].free.push(id);
         }
